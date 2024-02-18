@@ -20,10 +20,6 @@ http_response *handle_hello_post(http_request *req) {
     return http_response_text(200, "Hello, World! <POST>");
 }
 
-
-
-
-
 int main() {
     router_t *router = router_create();
     router_get(router, "/", handle_index);

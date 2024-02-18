@@ -2,93 +2,108 @@
 
 http_request *http_parse_request(char *request)
 {
-
     http_request *req = (http_request *)malloc(sizeof(http_request));
     if (!req)
         return NULL; // Memory allocation failed
 
     memset(req, 0, sizeof(http_request)); // Initialize the structure
 
-    char *saveptr; // Pointer used by strtok_r to maintain context between calls
+    char *saveptr; // For strtok_r context
     char *line = strtok_r(request, "\r\n", &saveptr);
-    if (line != NULL)
+    if (!line)
     {
-        sscanf(line, "%s %s %s", req->method, req->uri, req->version); // Parse request line
-        // Now you can continue to use strtok_r with saveptr to tokenize the rest of the request
-    }
-    else
-    {
-        // Handle error: request does not contain a valid request line
         printf("Invalid request line\n");
-        free(req); // Assuming req was allocated with malloc before
+        printf("Request: %s\n\n", request);
+        free(req);
         return NULL;
     }
 
-    char *headersStart = line + strlen(line) + 2;       // Skip past the first request line and \r\n
-    char *headerEnd = strstr(headersStart, "\r\n\r\n"); // Find the end of headers
-
-    char *headerLine;
-    while ((headerLine = strtok_r(NULL, "\r\n", &saveptr)) && *headerLine)
+    parse_request_line(&line, req);
+    if (req->error)
     {
-        char *colon = strchr(headerLine, ':');
-        if (!colon)
-            continue; // Malformed header line, skip
+        printf("Error parsing request: \n\n%s\n\n", request);
+        free(req);
+        return NULL;
+    }
+    parse_headers(&saveptr, req);
+    separate_query_string(req);
 
-        *colon = '\0'; // Temporarily terminate the key string
-        char *key = headerLine;
-        char *value = colon + 1;
-        while (*value == ' ')
-            value++; // Skip leading whitespaces in value
-
-        http_request_add_header(req, key, value);
+    // Find end of headers to determine start of the body
+    char *headersEnd = strstr(line, "\r\n\r\n");
+    if (headersEnd)
+    {
+        parse_body(headersEnd, req);
     }
 
-    // Separate query string from URI if present
+    return req;
+}
+
+void parse_request_line(char **line, http_request *req)
+{
+    // Define maximum sizes for method, uri, and version to prevent overflow
+    char method[8], uri[1024], version[16];
+    int parsed = sscanf(*line, "%7s %1023s %15s", method, uri, version); // Limit input size
+    if (parsed != 3)
+    {
+        // Handle error: Invalid request line
+        fprintf(stderr, "Error parsing request line\n");
+        req->error = 1;
+        return; // Consider how you want to handle this failure (e.g., setting an error flag in req)
+    }
+    // Ensure the strings are safely copied into the http_request structure
+    strncpy(req->method, method, sizeof(req->method) - 1);
+    req->method[sizeof(req->method) - 1] = '\0';
+    strncpy(req->uri, uri, sizeof(req->uri) - 1);
+    req->uri[sizeof(req->uri) - 1] = '\0';
+    strncpy(req->version, version, sizeof(req->version) - 1);
+    req->version[sizeof(req->version) - 1] = '\0';
+}
+
+void parse_headers(char **saveptr, http_request *req)
+{
+    char *line;
+    while ((line = strtok_r(NULL, "\r\n", saveptr)) && *line)
+    {
+        char *colon = strchr(line, ':');
+        if (!colon)
+            continue; // Skip malformed header
+
+        *colon = '\0'; // Temporarily terminate key
+        char *key = line;
+        char *value = colon + 2; // Skip colon and space
+
+        // Add the parsed header (assuming http_request_add_header is implemented)
+        http_request_add_header(req, key, value);
+    }
+}
+
+void separate_query_string(http_request *req)
+{
     char *queryStart = strchr(req->uri, '?');
     if (queryStart)
     {
-        *queryStart = '\0'; // Null-terminate the URI at the '?' character
-        if (queryStart && *(queryStart + 1) != '\0')
-        {
-            *queryStart = '\0';
-            req->query_string = strdup(queryStart + 1);
-            req->query_string_length = strlen(req->query_string);
-        }
-        else
-        {
-            // Handle the case where '?' is the last character or there's no query string
-            printf("No query string\n");
-        }
+        *queryStart = '\0'; // Terminate URI
+        req->query_string = strdup(queryStart + 1);
         req->query_string_length = strlen(req->query_string);
     }
+}
 
+void parse_body(char *headersEnd, http_request *req)
+{
+    char *bodyStart = headersEnd + 4; // Skip \r\n\r\n
     const char *contentLengthStr = http_request_get_header_value(req, "Content-Length");
     if (contentLengthStr)
     {
         int contentLength = atoi(contentLengthStr);
-        if (contentLength > 0)
+        size_t bodyLength = (size_t)contentLength;
+        req->body = (char *)malloc(bodyLength + 1);
+        if (req->body)
         {
-            // Calculate the actual start of the body
-            char *bodyStart = headerEnd + 4; // Skip past the \r\n\r\n that marks the end of headers
-            size_t actualLength = strlen(bodyStart);
-            size_t bodyLength = (size_t)contentLength < actualLength ? (size_t)contentLength : actualLength;
-
-            req->body = (char *)malloc(bodyLength + 1); // Allocate memory for the body
-            if (req->body)
-            {
-                strncpy(req->body, bodyStart, bodyLength);
-                req->body[bodyLength] = '\0'; // Null-terminate the body string
-                req->body_length = bodyLength;
-            }
+            strncpy(req->body, bodyStart, bodyLength);
+            req->body[bodyLength] = '\0';
+            req->body_length = bodyLength;
         }
     }
-    else
-    {
-        // If Content-Length header is not present or invalid, you might choose to handle this differently.
-        // For simplicity, we'll assume there's no body or handle it as your original approach.
-    }
-
-    return req;
 }
 
 void http_free_request(http_request *req)
