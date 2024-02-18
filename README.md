@@ -12,6 +12,8 @@ gcc main.c http.c server.c responses.c routing.c -Iincludes -o bin/server -lpthr
 sudo ./bin/server
 ```
 
+Stopping server with `CTRL+C` will automatically free all remaining resources.
+
 ## Usage
 
 ```c
