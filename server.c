@@ -35,7 +35,7 @@ int start_server()
     struct sockaddr_in server, client;
     socklen_t c = sizeof(struct sockaddr_in);
     pthread_t thread_id;
-    int *new_sock;
+    int *new_sock = NULL;
 
     // Signal handling setup
     signal(SIGINT, sigint_handler);
