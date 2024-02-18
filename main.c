@@ -1,20 +1,3 @@
-# http_c_server
- Simple http server with simple routing
-
-## Build
-```bash
-gcc main.c http.c server.c responses.c routing.c -Iincludes -o bin/server -lpthread -Wall -Wextra -pedantic
-```
-
-## Run
-
-```bash
-sudo ./bin/server
-```
-
-## Usage
-
-```c
 #include <server.h>
 #include <http.h>
 #include <routing.h>
@@ -37,6 +20,10 @@ http_response *handle_hello_post(http_request *req) {
     return http_response_text(200, "Hello, World! <POST>");
 }
 
+
+
+
+
 int main() {
     router_t *router = router_create();
     router_get(router, "/", handle_index);
@@ -47,4 +34,3 @@ int main() {
     start_server();
     return 0;
 }
-```
