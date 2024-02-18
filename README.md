@@ -1,6 +1,15 @@
 # http_c_server
  Simple http server with simple routing
 
+## Current Limitations and Known Issues
+**HTTP Version Support**: This software currently supports only HTTP/1.1. Compatibility with other versions of the HTTP protocol, such as HTTP/2 or HTTP/1.0, is not guaranteed.
+
+**Request Validation**: Please be aware that HTTP/TCP requests that do not adhere to the expected format may lead to unpredictable behavior. The error handling mechanisms in place may not sufficiently identify or mitigate issues arising from improperly formatted requests.
+
+**Error Checking**: The error detection capabilities are in development, and as such, the system might not accurately recognize all instances of malformed requests. I am trying to actively work to enhance the robustness of the request parsing and validation processes.
+
+**Usage Advisory**: Given the above limitations, I advise users to ensure that input data is well-formed and compliant with HTTP/1.1 specifications to avoid potential issues. I appreciate feedback and bug reports from you to help improve the software.
+
 ## Build
 ```bash
 gcc main.c http.c server.c responses.c routing.c -Iincludes -o bin/server -lpthread -Wall -Wextra -pedantic
