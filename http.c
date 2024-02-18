@@ -41,8 +41,9 @@ http_request *http_parse_request(char *request)
 void parse_request_line(char **line, http_request *req)
 {
     // Define maximum sizes for method, uri, and version to prevent overflow
-    char method[8], uri[1024], version[16];
-    int parsed = sscanf(*line, "%7s %1023s %15s", method, uri, version); // Limit input size
+    char method[8], uri[4096], version[16];
+    int parsed = sscanf(*line, "%7s %4096s %15s", method, uri, version); // Limit input size
+    printf("uri: %s\n", uri);
     if (parsed != 3)
     {
         // Handle error: Invalid request line
@@ -124,6 +125,16 @@ void http_free_request(http_request *req)
     if (req->body)
     {
         free(req->body);
+    }
+
+    param_t *current_param = req->params;
+    while (current_param)
+    {
+        param_t *next = current_param->next;
+        free(current_param->key);
+        free(current_param->value);
+        free(current_param);
+        current_param = next;
     }
     free(req);
 }
@@ -339,4 +350,24 @@ const char *http_request_get_header_value(http_request *req, const char *key)
     }
 
     return NULL; // Header not found
+}
+
+char *http_request_get_param(http_request *req, const char *key)
+{
+    if (!req || !key)
+    {
+        return NULL; // Invalid input
+    }
+
+    param_t *current = req->params;
+    while (current != NULL)
+    {
+        if (strcmp(current->key, key) == 0)
+        {
+            return current->value; // Found the parameter, return its value
+        }
+        current = current->next; // Move to the next parameter in the list
+    }
+
+    return NULL; // Parameter not found
 }

@@ -12,9 +12,15 @@ typedef struct header_node {
     struct header_node *next;
 } header_node;
 
+typedef struct param_t {
+    char *key;
+    char *value;
+    struct param_t *next;
+} param_t;
+
 typedef struct {
     char method[10];
-    char uri[50];
+    char uri[4096];
     char version[10];
 
     char *body;
@@ -24,6 +30,9 @@ typedef struct {
 
     char *query_string;
     size_t query_string_length;
+
+    param_t *params;
+    int param_count;
 
     int error;
 } http_request;
@@ -56,6 +65,8 @@ header_node* create_header_node(char *key, char *value);
 int http_response_add_header(http_response *response, char *key, char *value);
 void http_request_add_header(http_request *req, char *key, char *value);
 const char *http_request_get_header_value(http_request *req, const char *key);
+
+char *http_request_get_param(http_request *req, const char *key);
 
 char *http_response_status_message(int status_code); // maps status code to status message
 http_response *http_response_json(int status_code, char *json_data);

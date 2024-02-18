@@ -37,6 +37,9 @@ void router_put(router_t *router, char *path, http_response *(*handler)(http_req
 void router_delete(router_t *router, char *path, http_response *(*handler)(http_request *req));
 int str_to_method(char *method); // "GET" -> 0, "POST" -> 1, "PUT" -> 2, "DELETE" -> 3
 http_response *router_handle_request(router_t *router, http_request *req);
+route_t *match_route(http_request *req, router_t *router);
+char **split_string(const char *str, const char *delimiter, int *count);
+void add_param_to_request(http_request *req, const char *key, const char *value);
 
 void route_free(route_t *route);
 void router_free(router_t *router);
