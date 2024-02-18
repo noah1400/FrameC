@@ -1,7 +1,7 @@
 CC := gcc
 CFLAGS := -Iincludes -Wall -Wextra -Werror -Wpedantic
 LDFLAGS := -lpthread
-SRC_DIR := .
+SRC_DIR := src
 BIN_DIR := bin
 SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%.o,$(SRC_FILES))
