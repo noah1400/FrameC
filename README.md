@@ -12,7 +12,7 @@
 
 ## Build
 ```bash
-gcc main.c http.c server.c responses.c routing.c -Iincludes -o bin/server -lpthread -Wall -Wextra -pedantic
+make
 ```
 
 ## Run
