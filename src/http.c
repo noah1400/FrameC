@@ -43,7 +43,6 @@ void parse_request_line(char **line, http_request *req)
     // Define maximum sizes for method, uri, and version to prevent overflow
     char method[8], uri[4096], version[16];
     int parsed = sscanf(*line, "%7s %4096s %15s", method, uri, version); // Limit input size
-    printf("uri: %s\n", uri);
     if (parsed != 3)
     {
         // Handle error: Invalid request line

@@ -18,7 +18,7 @@ void sigint_handler(int sig_num)
 {
     (void)sig_num;                         // Unused parameter warning
     global_server->shutdown_requested = 1; // Set the flag to indicate shutdown is requested
-    printf("Received SIGINT, shutting down...\n");
+    printf("\nReceived SIGINT, shutting down...\n");
     cleanup_server();
 }
 
@@ -55,8 +55,6 @@ int start_server()
         return 1;
     }
 
-    printf("Socket created\n");
-
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(global_server->port);
@@ -66,10 +64,9 @@ int start_server()
         perror("bind failed. Error");
         return 1;
     }
-    printf("bind done\n");
 
     listen(global_server->server_fd, 3);
-    printf("Waiting for incoming connections...\n");
+    printf("Ready! \n");
 
     while (!global_server->shutdown_requested && (new_sock = malloc(sizeof(int))) &&
            (*new_sock = accept(global_server->server_fd, (struct sockaddr *)&client, &c), *new_sock > 0))
