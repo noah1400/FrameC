@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <hash.h>
 
 typedef struct header_node {
     char *key;
@@ -26,12 +27,12 @@ typedef struct {
     char *body;
     size_t body_length;
 
-    header_node *headers;
+    hashmap_map *headers;
 
     char *query_string;
     size_t query_string_length;
 
-    param_t *params;
+    hashmap_map *params;
     int param_count;
 
     int error;
@@ -44,7 +45,7 @@ typedef struct {
     char status_message[50];
     char *body;
     size_t body_length;
-    header_node *headers; // Linked list of headers
+    hashmap_map *headers;
 } http_response;
 
 
@@ -63,10 +64,10 @@ void http_free_response(http_response *response);
 
 header_node* create_header_node(char *key, char *value);
 int http_response_add_header(http_response *response, char *key, char *value);
-void http_request_add_header(http_request *req, char *key, char *value);
-const char *http_request_get_header_value(http_request *req, const char *key);
+int http_request_add_header(http_request *req, char *key, char *value);
+char *http_request_get_header_value(http_request *req, char *key);
 
-char *http_request_get_param(http_request *req, const char *key);
+char *http_request_get_param(http_request *req, char *key);
 
 char *http_response_status_message(int status_code); // maps status code to status message
 http_response *http_response_json(int status_code, char *json_data);

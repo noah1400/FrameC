@@ -9,6 +9,7 @@
 #include <http.h>
 #include <stdlib.h>
 #include <string.h>
+#include <hash.h>
 
 typedef struct {
     char *path;
@@ -38,8 +39,8 @@ void router_delete(router_t *router, char *path, http_response *(*handler)(http_
 int str_to_method(char *method); // "GET" -> 0, "POST" -> 1, "PUT" -> 2, "DELETE" -> 3
 http_response *router_handle_request(router_t *router, http_request *req);
 route_t *match_route(http_request *req, router_t *router);
-char **split_string(const char *str, const char *delimiter, int *count);
-void add_param_to_request(http_request *req, const char *key, const char *value);
+char **split_string(char *str, char *delimiter, int *count);
+int add_param_to_request(http_request *req, char *key, char *value);
 
 void route_free(route_t *route);
 void router_free(router_t *router);

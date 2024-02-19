@@ -112,29 +112,17 @@ void http_free_request(http_request *req)
     {
         free(req->query_string);
     }
-    header_node *current = req->headers;
-    while (current)
+    if (req->headers)
     {
-        header_node *next = current->next;
-        free(current->key);
-        free(current->value);
-        free(current);
-        current = next;
+        hashmap_free(req->headers);
     }
     if (req->body)
     {
         free(req->body);
     }
 
-    param_t *current_param = req->params;
-    while (current_param)
-    {
-        param_t *next = current_param->next;
-        free(current_param->key);
-        free(current_param->value);
-        free(current_param);
-        current_param = next;
-    }
+    if (req->params)
+        hashmap_free(req->params);
     free(req);
 }
 
@@ -182,7 +170,7 @@ http_response *http_create_response(int status_code, char *status_message, char 
     response->body = body ? strdup(body) : NULL;
     response->body_length = body ? strlen(body) : 0;
 
-    response->headers = NULL; // Initially, no headers
+    response->headers = hashmap_new();
 
     // Example usage: Add a default Content-Type header
     // This assumes http_response_add_header is properly implemented
@@ -202,16 +190,24 @@ void http_free_response(http_response *response)
     if (response->body)
         free(response->body);
     // Free headers
-    header_node *current = response->headers;
-    while (current)
-    {
-        header_node *next = current->next;
-        free(current->key);
-        free(current->value);
-        free(current);
-        current = next;
-    }
+    hashmap_free(response->headers);
     free(response);
+}
+
+void append_header(char *key, char *value, void *responseString)
+{
+    // cast responseString to char*
+    responseString = (char *)responseString;
+    strcat(responseString, key);
+    strcat(responseString, ": ");
+    strcat(responseString, value);
+    strcat(responseString, "\r\n");
+}
+
+void calculateLength(char *key, char *value, void *count)
+{
+    int *c = (int *)count;
+    *c += strlen(key) + 2 + strlen(value) + 2; // key: value\r\n
 }
 
 char *http_response_to_string(http_response *response)
@@ -220,10 +216,10 @@ char *http_response_to_string(http_response *response)
     size_t totalLength = strlen(response->version) + 4 + strlen(response->status_message) + 2 + response->body_length + 2;
 
     // Calculate headers length
-    for (header_node *current = response->headers; current != NULL; current = current->next)
-    {
-        totalLength += strlen(current->key) + 2 + strlen(current->value) + 2; // key: value\r\n
-    }
+
+    int count = 0;
+    hashmap_iterate(response->headers, calculateLength, &count);
+    totalLength += count;
 
     char *responseString = (char *)malloc(totalLength + 1); // +1 for null terminator
     if (!responseString)
@@ -232,13 +228,16 @@ char *http_response_to_string(http_response *response)
     sprintf(responseString, "%s %d %s\r\n", response->version, response->status_code, response->status_message);
 
     // Append headers
-    for (header_node *current = response->headers; current != NULL; current = current->next)
-    {
-        strcat(responseString, current->key);
-        strcat(responseString, ": ");
-        strcat(responseString, current->value);
-        strcat(responseString, "\r\n");
-    }
+    // for (header_node *current = response->headers; current != NULL; current = current->next)
+    // {
+    //     strcat(responseString, current->key);
+    //     strcat(responseString, ": ");
+    //     strcat(responseString, current->value);
+    //     strcat(responseString, "\r\n");
+    // }
+
+    // Append headers
+    hashmap_iterate(response->headers, append_header, responseString);
 
     strcat(responseString, "\r\n"); // Headers and body separator
 
@@ -265,108 +264,40 @@ header_node *create_header_node(char *key, char *value)
 
 int http_response_add_header(http_response *response, char *key, char *value)
 {
-    header_node **current = &(response->headers);
-
-    // Search for an existing header with the same key
-    while (*current)
+    if (!response || !key || !value)
+        return -1; // Basic validation
+    if (!response->headers)
     {
-        if (strcmp((*current)->key, key) == 0)
-        {
-            // Key found, overwrite its value
-            free((*current)->value);           // Free the old value
-            (*current)->value = strdup(value); // Set new value
-            return 0;                          // Success
-        }
-        current = &((*current)->next);
+        response->headers = hashmap_new();
+        if (!response->headers)
+            return -1; // Failed to create headers map
     }
-
-    // Key not found, add a new header
-    header_node *newNode = create_header_node(key, value);
-    if (!newNode)
-        return -1; // Memory allocation failed
-
-    *current = newNode; // Append new node to the list
-    return 0;           // Success
+    return hashmap_put(response->headers, key, value);
 }
 
-void http_request_add_header(http_request *req, char *key, char *value)
+int http_request_add_header(http_request *req, char *key, char *value)
 {
     if (!req || !key || !value)
-        return; // Basic validation
-
-    // Look for an existing header with the same key
-    header_node *current = req->headers;
-    while (current)
+        return -1; // Basic validation
+    if (!req->headers)
     {
-        if (strcmp(current->key, key) == 0)
-        {
-            // Found an existing header, update its value
-            free(current->value);           // Free the old value
-            current->value = strdup(value); // Assign the new value
-            return;
-        }
-        current = current->next;
+        req->headers = hashmap_new();
+        if (!req->headers)
+            return -1; // Failed to create headers map
     }
-
-    // No existing header found, create a new one
-    header_node *new_node = create_header_node(key, value);
-    if (!new_node)
-        return; // Failed to create a new node
-
-    if (req->headers == NULL)
-    {
-        // The list is empty, make the new node the head
-        req->headers = new_node;
-    }
-    else
-    {
-        // Find the last node in the list
-        current = req->headers;
-        while (current->next != NULL)
-        {
-            current = current->next;
-        }
-        // Add the new node to the end of the list
-        current->next = new_node;
-    }
+    return hashmap_put(req->headers, key, value);
 }
 
-const char *http_request_get_header_value(http_request *req, const char *key)
+char *http_request_get_header_value(http_request *req, char *key)
 {
     if (!req || !key)
-    {
-        return NULL; // Invalid input
-    }
-
-    header_node *current = req->headers;
-    while (current != NULL)
-    {
-        if (strcmp(current->key, key) == 0)
-        {
-            return current->value; // Found the header, return its value
-        }
-        current = current->next; // Move to the next header in the list
-    }
-
-    return NULL; // Header not found
+        return NULL; // Basic validation
+    return hashmap_get(req->headers, key);
 }
 
-char *http_request_get_param(http_request *req, const char *key)
+char *http_request_get_param(http_request *req, char *key)
 {
     if (!req || !key)
-    {
-        return NULL; // Invalid input
-    }
-
-    param_t *current = req->params;
-    while (current != NULL)
-    {
-        if (strcmp(current->key, key) == 0)
-        {
-            return current->value; // Found the parameter, return its value
-        }
-        current = current->next; // Move to the next parameter in the list
-    }
-
-    return NULL; // Parameter not found
+        return NULL; // Basic validation
+    return hashmap_get(req->params, key);
 }

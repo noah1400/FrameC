@@ -148,35 +148,20 @@ param_t *create_param(const char *key, const char *value)
     return new_param;
 }
 
-void add_param_to_request(http_request *req, const char *key, const char *value)
+int add_param_to_request(http_request *req, char *key, char *value)
 {
-    param_t *new_param = create_param(key, value);
-    if (new_param == NULL)
-    {
-        // Handle memory allocation failure if needed
-        return;
-    }
-
     if (req->params == NULL)
     {
-        // List is empty, new param becomes the head
-        req->params = new_param;
-    }
-    else
-    {
-        // Append to the end of the list
-        param_t *current = req->params;
-        while (current->next != NULL)
+        req->params = hashmap_new();
+        if (req->params == NULL)
         {
-            current = current->next;
+            return -1; // Failed to create params map
         }
-        current->next = new_param;
     }
-
-    req->param_count++; // Increment the count of parameters
+    return hashmap_put(req->params, key, value);
 }
 
-char **split_string(const char *str, const char *delimiter, int *count)
+char **split_string(char *str, char *delimiter, int *count)
 {
     char **array = NULL;
     int capacity = 10;
