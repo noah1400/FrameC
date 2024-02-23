@@ -1,5 +1,6 @@
-# http_c_server
- Simple http server with simple routing
+# FrameC
+
+A lightweight C-based web framework featuring an integrated web server and simplistic routing mechanism.
 
 ## Current Limitations and Known Issues
 **HTTP Version Support**: This software currently supports only HTTP/1.1. Compatibility with other versions of the HTTP protocol, such as HTTP/2 or HTTP/1.0, is not guaranteed.
