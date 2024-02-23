@@ -116,7 +116,12 @@ void process_client_request(int sock)
     buffer[read_size] = '\0';
 
 
-    http_request *req = (http_request *)malloc(sizeof(http_request));
+    http_request *req = http_create_request();
+    if (req == NULL)
+    {
+        send_response_and_cleanup(sock, NULL, http_response_error(500, "Internal Server Error"));
+        return;
+    }
     parser_parse_request(buffer, req);
     if (req->error)
     {
@@ -135,14 +140,6 @@ void process_client_request(int sock)
     {
         res = router_handle_request(global_server->router, req);
     }
-
-    // output the response
-    printf("\nResponse:\n");
-    printf("%s %d %s\n", res->version, res->status_code, res->status_message);
-    printf("\nHeaders:\n");
-    hashmap_iterate(res->headers, print_header, NULL);
-    printf("\nCookies:\n");
-    hashmap_iterate(res->cookies, print_cookie, req);
 
 
     send_response_and_cleanup(sock, req, res);

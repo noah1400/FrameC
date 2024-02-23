@@ -1,5 +1,46 @@
 #include <http.h>
 
+http_request *http_create_request() {
+    http_request *req = (http_request *)malloc(sizeof(http_request));
+    if (!req)
+        return NULL; // Failed to allocate memory for request
+
+    *req = (http_request){0};
+
+    req->headers = hashmap_new();
+    if (!req->headers) {
+        free(req);
+        return NULL; // Failed to create headers map
+    }
+
+    req->params = hashmap_new();
+    if (!req->params) {
+        hashmap_free(req->headers);
+        free(req);
+        return NULL; // Failed to create params map
+    }
+
+    req->getParams = hashmap_new();
+    if (!req->getParams) {
+        hashmap_free(req->headers);
+        hashmap_free(req->params);
+        free(req);
+        return NULL; // Failed to create getParams map
+    }
+
+    req->cookies = hashmap_new();
+    if (!req->cookies) {
+        hashmap_free(req->headers);
+        hashmap_free(req->params);
+        hashmap_free(req->getParams);
+        free(req);
+        return NULL; // Failed to create cookies map
+    }
+
+    return req;
+
+}
+
 void http_free_request(http_request *req)
 {
     if (req->_query_string)

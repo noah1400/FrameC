@@ -27,10 +27,6 @@ hashmap_map *hashmap_new()
 int hashmap_put(hashmap_map *m, char *key, char *value)
 {
 
-    if (!m) {
-        m = hashmap_new();
-    }
-
     if (value == NULL || strlen(value) == 0)
     {
         value = " ";

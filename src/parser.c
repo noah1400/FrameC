@@ -1,21 +1,42 @@
 #include <parser.h>
 
+void add_get_param(http_request *request, char *key, char *value)
+{
+    hashmap_put(request->getParams, key, value);
+}
+
 void parser_parse_query_string(char *query, http_request *request)
 {
-    // extracts parameters and values from query string
-    // and stores them in a hashmap
+    // Ensure there's a query to parse.
+    if (query == NULL || *query == '\0') {
+        return;
+    }
+
     char *current = query;
     char *next;
-    while ((next = strchr(current, '&')) && (current[0] != '\0'))
-    {
-        char *param = strtok(current, "=");
-        char *value = strtok(NULL, "&");
-        hashmap_put(request->getParams, param, value);
-        current = next + 1;
+    char *saveptr = NULL; // Single saveptr for consistent tokenization context
+
+    // Use a loop to iterate over each parameter-value pair
+    while ((next = strchr(current, '&')) != NULL || *current) {
+        if (next != NULL) {
+            *next = '\0'; // Temporarily end the string to isolate the current part
+        }
+
+        // Extract parameter and value
+        char *param = strtok_r(current, "=", &saveptr);
+        char *value = strtok_r(NULL, "=", &saveptr); // Continue with the same saveptr
+
+        if (param && value) {
+            add_get_param(request, param, value);
+        }
+
+        if (next != NULL) {
+            *next = '&'; // Restore the '&' character if we modified the string
+            current = next + 1;
+        } else {
+            break; // No more parameters to process
+        }
     }
-    char *param = strtok(current, "=");
-    char *value = strtok(NULL, "&");
-    hashmap_put(request->getParams, param, value);
 
     return;
 }
@@ -42,7 +63,6 @@ void parser_parse_request(char *req, http_request *request)
     {
         *queryStart = '\0'; // Terminate URI
         request->_query_string = strdup(queryStart + 1);
-        request->getParams = hashmap_new();
         parser_parse_query_string(request->_query_string, request);
     }
     else
@@ -52,9 +72,6 @@ void parser_parse_request(char *req, http_request *request)
     }
 
     currentLine = nextLine + 2;
-
-    request->headers = hashmap_new();
-    request->cookies = hashmap_new();
 
     while ((nextLine = strstr(currentLine, "\r\n")) && (currentLine[0] != '\r'))
     {

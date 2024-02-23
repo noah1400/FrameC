@@ -136,14 +136,6 @@ void router_free(router_t *router)
 
 int add_param_to_request(http_request *req, char *key, char *value)
 {
-    if (req->params == NULL)
-    {
-        req->params = hashmap_new();
-        if (req->params == NULL)
-        {
-            return -1; // Failed to create params map
-        }
-    }
     return hashmap_put(req->params, key, value);
 }
 
@@ -169,7 +161,8 @@ char **split_string(char *str, char *delimiter, int *count)
         return NULL;
     }
 
-    char *token = strtok(str_copy, delimiter);
+    char *saveptr; // For strtok_r's context
+    char *token = strtok_r(str_copy, delimiter, &saveptr);
     while (token)
     {
         if (*count >= capacity)
@@ -204,7 +197,7 @@ char **split_string(char *str, char *delimiter, int *count)
             return NULL;
         }
         (*count)++;
-        token = strtok(NULL, delimiter);
+        token = strtok_r(NULL, delimiter, &saveptr);
     }
     free(str_copy);
 

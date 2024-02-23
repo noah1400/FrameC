@@ -55,6 +55,7 @@ typedef struct {
 } http_cookie;
 
 char *http_request_to_string(http_request *request);
+http_request *http_create_request();
 void http_free_request(http_request *request);
 
 http_response *http_create_response(int status_code, char *status_message, char *body);
