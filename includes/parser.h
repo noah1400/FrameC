@@ -4,7 +4,7 @@
 #include <hash.h>
 #include <http.h>
 
-void parser_parse_request(char *req, http_request *request);
+void parser_parse_request(const char *req, http_request *request);
 
 
 

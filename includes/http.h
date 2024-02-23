@@ -58,7 +58,7 @@ char *http_request_to_string(http_request *request);
 http_request *http_create_request();
 void http_free_request(http_request *request);
 
-http_response *http_create_response(int status_code, char *status_message, char *body);
+http_response *http_create_response(int status_code, const char *status_message, char *body);
 char *http_response_to_string(http_response *response);
 void http_free_response(http_response *response);
 void http_free_cookie(http_cookie *cookie);

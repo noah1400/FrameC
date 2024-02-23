@@ -32,7 +32,8 @@ void init_server(int port, router_t *router)
 
 int start_server()
 {
-    struct sockaddr_in server, client;
+    struct sockaddr_in server;
+    struct sockaddr_in client;
     socklen_t c = sizeof(struct sockaddr_in);
     pthread_t thread_id;
     int *new_sock = NULL;
@@ -57,7 +58,7 @@ int start_server()
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(global_server->port);
+    server.sin_port = htons((uint16_t)global_server->port);
 
     if (bind(global_server->server_fd, (struct sockaddr *)&server, sizeof(server)) < 0)
     {

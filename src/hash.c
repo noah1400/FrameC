@@ -24,7 +24,7 @@ hashmap_map *hashmap_new()
     return m;
 }
 
-int hashmap_put(hashmap_map *m, char *key, char *value)
+int hashmap_put(hashmap_map *m, char *key, const char *value)
 {
 
     if (value == NULL || strlen(value) == 0)
@@ -36,12 +36,9 @@ int hashmap_put(hashmap_map *m, char *key, char *value)
         key = " ";
     }
 
-    if (m->size >= m->table_size)
+    if (m->size >= m->table_size && hashmap_rehash(m) != MAP_OK)
     {
-        if (hashmap_rehash(m) != MAP_OK)
-        {
-            return MAP_FULL;
-        }
+        return MAP_FULL;
     }
 
     int index = hashmap_hash_string(key) % m->table_size;
@@ -61,7 +58,7 @@ int hashmap_put(hashmap_map *m, char *key, char *value)
     return MAP_OK;
 }
 
-char *hashmap_get(hashmap_map *m, char *key)
+char *hashmap_get(hashmap_map *m, const char *key)
 {
 
     if (!m) {
@@ -80,7 +77,7 @@ char *hashmap_get(hashmap_map *m, char *key)
     return NULL;
 }
 
-int hashmap_remove(hashmap_map *m, char *key)
+int hashmap_remove(hashmap_map *m, const char *key)
 {
     int index = hashmap_hash_string(key) % m->table_size;
     while (m->data[index].in_use)
@@ -124,11 +121,11 @@ void hashmap_free(hashmap_map *m) {
     free(m);
 }
 
-int hashmap_length(hashmap_map *m) {
+int hashmap_length(const hashmap_map *m) {
     return m->size;
 }
 
-unsigned int hashmap_hash_string(char *str) {
+unsigned int hashmap_hash_string(const char *str) {
     unsigned int hash = 5381;
     int c;
     while ((c = *str++)) {
@@ -160,7 +157,7 @@ int hashmap_rehash(hashmap_map *m) {
     return MAP_OK;
 }
 
-void hashmap_iterate(hashmap_map *m, hashmap_iter_cb cb, void *data) {
+void hashmap_iterate(const hashmap_map *m, hashmap_iter_cb cb, void *data) {
     for (int i = 0; i < m->table_size; i++) {
         if (m->data[i].in_use) {
             cb(m->data[i].key, m->data[i].value, data);

@@ -1,6 +1,7 @@
 #include <http.h>
 
-http_request *http_create_request() {
+http_request *http_create_request()
+{
     http_request *req = (http_request *)malloc(sizeof(http_request));
     if (!req)
         return NULL; // Failed to allocate memory for request
@@ -8,20 +9,23 @@ http_request *http_create_request() {
     *req = (http_request){0};
 
     req->headers = hashmap_new();
-    if (!req->headers) {
+    if (!req->headers)
+    {
         free(req);
         return NULL; // Failed to create headers map
     }
 
     req->params = hashmap_new();
-    if (!req->params) {
+    if (!req->params)
+    {
         hashmap_free(req->headers);
         free(req);
         return NULL; // Failed to create params map
     }
 
     req->getParams = hashmap_new();
-    if (!req->getParams) {
+    if (!req->getParams)
+    {
         hashmap_free(req->headers);
         hashmap_free(req->params);
         free(req);
@@ -29,7 +33,8 @@ http_request *http_create_request() {
     }
 
     req->cookies = hashmap_new();
-    if (!req->cookies) {
+    if (!req->cookies)
+    {
         hashmap_free(req->headers);
         hashmap_free(req->params);
         hashmap_free(req->getParams);
@@ -38,7 +43,6 @@ http_request *http_create_request() {
     }
 
     return req;
-
 }
 
 void http_free_request(http_request *req)
@@ -83,17 +87,17 @@ char *http_request_to_string(http_request *request)
 
     // Start constructing the string
     char *ptr = requestString;
-    ptr += sprintf(ptr, "<%s %s%s%s %s>",
-                   request->method,
-                   request->uri,
-                   request->_query_string ? "?" : "",
-                   request->_query_string ? request->_query_string : "",
-                   request->version);
+    sprintf(ptr, "<%s %s%s%s %s>",
+            request->method,
+            request->uri,
+            request->_query_string ? "?" : "",
+            request->_query_string ? request->_query_string : "",
+            request->version);
 
     return requestString;
 }
 
-http_response *http_create_response(int status_code, char *status_message, char *body)
+http_response *http_create_response(int status_code, const char *status_message, char *body)
 {
     http_response *response = (http_response *)malloc(sizeof(http_response));
     if (!response)
@@ -145,7 +149,7 @@ void http_free_response(http_response *response)
     free(response);
 }
 
-void append_header(char *key, char *value, void *responseString)
+void append_header(const char *key, const char *value, void *responseString)
 {
     // cast responseString to char*
     responseString = (char *)responseString;
@@ -156,7 +160,7 @@ void append_header(char *key, char *value, void *responseString)
 }
 
 // cookie value format: name=value; Path=/; Max-Age=3600
-void append_cookie(char *key, char *value, void *responseString)
+void append_cookie(const char *key, const char *value, void *responseString)
 {
     (void)key; // unused
     // cast responseString to char*
@@ -166,7 +170,7 @@ void append_cookie(char *key, char *value, void *responseString)
     strcat(responseString, "\r\n");
 }
 
-void calculateLength(char *key, char *value, void *count)
+void calculateLength(const char *key, const char *value, void *count)
 {
     int *c = (int *)count;
     *c += strlen(key) + 2 + strlen(value) + 2; // key: value\r\n
@@ -180,11 +184,11 @@ char *http_response_to_string(http_response *response)
     // Calculate headers length
 
     int count = 0;
-    hashmap_iterate(response->headers, calculateLength, &count);
+    hashmap_iterate(response->headers, &calculateLength, &count);
     totalLength += count;
     // Calculate cookies length
     count = 0;
-    hashmap_iterate(response->cookies, calculateLength, &count);
+    hashmap_iterate(response->cookies, &calculateLength, &count);
     totalLength += count;
 
     char *responseString = (char *)malloc(totalLength + 1); // +1 for null terminator
@@ -193,8 +197,8 @@ char *http_response_to_string(http_response *response)
 
     sprintf(responseString, "%s %d %s\r\n", response->version, response->status_code, response->status_message);
 
-    hashmap_iterate(response->headers, append_header, responseString);
-    hashmap_iterate(response->cookies, append_cookie, responseString);
+    hashmap_iterate(response->headers, &append_header, responseString);
+    hashmap_iterate(response->cookies, &append_cookie, responseString);
 
     strcat(responseString, "\r\n"); // Headers and body separator
 
@@ -307,13 +311,10 @@ http_cookie *http_parse_cookie_string(char *cookieString)
             {
                 cookie->sameSite = strdup(value);
             }
-            else
+            else if (cookie->name == NULL && cookie->value == NULL)
             {
-                if (cookie->name == NULL && cookie->value == NULL)
-                { 
-                    cookie->name = strdup(key);
-                    cookie->value = strdup(value);
-                }
+                cookie->name = strdup(key);
+                cookie->value = strdup(value);
             }
         }
         else if (key != NULL)
@@ -336,7 +337,7 @@ http_cookie *http_parse_cookie_string(char *cookieString)
 
 http_cookie *http_request_get_cookie(http_request *req, char *key)
 {
-    char *cookieString = hashmap_get(req->cookies, key);
+    const char *cookieString = hashmap_get(req->cookies, key);
     if (!cookieString)
         return NULL; // Cookie not found
 
