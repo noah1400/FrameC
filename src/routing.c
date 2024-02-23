@@ -218,6 +218,11 @@ route_t *match_route(http_request *req, router_t *router)
     {
         int route_segments_count, uri_segments_count;
         char **route_segments = split_string(current->route->path, "/", &route_segments_count);
+        // remove '/' at the end of the uri if it exists
+        if (req->uri[strlen(req->uri) - 1] == '/')
+        {
+            req->uri[strlen(req->uri) - 1] = '\0';
+        }
         char **uri_segments = split_string(req->uri, "/", &uri_segments_count);
 
         if (route_segments_count == uri_segments_count)

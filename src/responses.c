@@ -47,9 +47,15 @@ http_response *http_response_error(int status_code, char *error_message) {
     return http_response_text(status_code, error_message);
 }
 
+// key = cookie name, value = cookie value
+// cookie value format: name=value; Path=/; Max-Age=3600
+int http_response_add_cookie(http_response *response, char *key, char *value) {
+    return hashmap_put(response->cookies, key, value);
+}
+
 void http_response_set_cookie(http_response *resp, char *name, char *value, char *path, int max_age) {
     char *cookie = malloc(strlen(name) + strlen(value) + strlen(path) + 50);
     sprintf(cookie, "%s=%s; Path=%s; Max-Age=%d", name, value, path, max_age);
-    http_response_add_header(resp, "Set-Cookie", cookie);
+    http_response_add_cookie(resp, name, cookie);
     free(cookie);
 }

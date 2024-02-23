@@ -27,6 +27,10 @@ hashmap_map *hashmap_new()
 int hashmap_put(hashmap_map *m, char *key, char *value)
 {
 
+    if (!m) {
+        m = hashmap_new();
+    }
+
     if (value == NULL || strlen(value) == 0)
     {
         value = " ";
@@ -63,6 +67,11 @@ int hashmap_put(hashmap_map *m, char *key, char *value)
 
 char *hashmap_get(hashmap_map *m, char *key)
 {
+
+    if (!m) {
+        return NULL;
+    }
+
     int index = hashmap_hash_string(key) % m->table_size;
     while (m->data[index].in_use)
     {
@@ -100,6 +109,11 @@ int hashmap_remove(hashmap_map *m, char *key)
 }
 
 void hashmap_free(hashmap_map *m) {
+
+    if (!m) {
+        return;
+    }
+
     for (int i = 0; i < m->table_size; i++) {
         if (m->data[i].in_use) {
             if (m->data[i].key) {

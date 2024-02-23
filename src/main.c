@@ -4,25 +4,29 @@
 #include <parser.h>
 
 // GET /
-http_response *handle_index(http_request *req) {
+http_response *handle_index(http_request *req)
+{
     (void)req; // Unused parameter (req) warning
     return http_response_text(200, "Index <GET>");
 }
 
 // GET /hello
-http_response *handle_hello(http_request *req) {
+http_response *handle_hello(http_request *req)
+{
     (void)req; // Unused parameter (req) warning
     return http_response_text(200, "Hello, World! <GET>");
 }
 
 // POST /hello
-http_response *handle_hello_post(http_request *req) {
+http_response *handle_hello_post(http_request *req)
+{
     (void)req; // Unused parameter (req) warning
     return http_response_text(200, "Hello, World! <POST>");
 }
 
 // GET /hello/{id}
-http_response *handle_hello_id(http_request *req) {
+http_response *handle_hello_id(http_request *req)
+{
     char *id = http_request_get_param(req, "id");
     char *response = malloc(strlen(id) + 8);
     sprintf(response, "Hello %s!", id);
@@ -32,25 +36,40 @@ http_response *handle_hello_id(http_request *req) {
 }
 
 // GET /multiple/{id}/{name}
-http_response *handle_multiple(http_request *req) {
+http_response *handle_multiple(http_request *req)
+{
     char *id = http_request_get_param(req, "id");
     char *name = http_request_get_param(req, "name");
-    char *response = malloc(strlen(id) + strlen(name) + 3);
-    sprintf(response, "%s %s", id, name);
-    http_response *res = http_response_text(200, response);
-    free(response);
-    return res;
+    char *getParam = http_request_get_get_param(req, "name");
+    if (getParam != NULL)
+    {
+        char *response = malloc(strlen(id) + strlen(name) + strlen(getParam) + 4);
+        sprintf(response, "%s %s %s", id, name, getParam);
+        http_response *res = http_response_text(200, response);
+        free(response);
+        return res;
+    }
+    else
+    {
+        char *response = malloc(strlen(id) + strlen(name) + 3);
+        sprintf(response, "%s %s", id, name);
+        http_response *res = http_response_text(200, response);
+        free(response);
+        return res;
+    }
 }
 
 // GET /set-cookie
-http_response *handle_set_cookie(http_request *req) {
+http_response *handle_set_cookie(http_request *req)
+{
     (void)req; // Unused parameter (req) warning
     http_response *res = http_response_text(200, "Cookie set");
     http_response_set_cookie(res, "name", "value", "/", 3600);
     return res;
 }
 
-int main() {
+int main()
+{
     router_t *router = router_create();
     router_get(router, "/", handle_index);
     router_get(router, "/hello", handle_hello);
