@@ -18,8 +18,6 @@ struct parsed_object {
 
 typedef struct parsed_object parsed_object;
 
-void test();
-
 parsed_object *parse(char *input);
 
 #endif
