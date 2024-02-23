@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Iincludes -Wall -Wextra -Werror -Wpedantic
+CFLAGS := -Iincludes -Wall -Wextra -Werror -Wpedantic -g
 LDFLAGS := -lpthread
 SRC_DIR := src
 BIN_DIR := bin

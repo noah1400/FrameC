@@ -1,6 +1,7 @@
 #include <server.h>
 #include <http.h>
 #include <routing.h>
+#include <parser.h>
 
 // GET /
 http_response *handle_index(http_request *req) {
@@ -41,6 +42,14 @@ http_response *handle_multiple(http_request *req) {
     return res;
 }
 
+// GET /set-cookie
+http_response *handle_set_cookie(http_request *req) {
+    (void)req; // Unused parameter (req) warning
+    http_response *res = http_response_text(200, "Cookie set");
+    http_response_set_cookie(res, "name", "value", "/", 3600);
+    return res;
+}
+
 int main() {
     router_t *router = router_create();
     router_get(router, "/", handle_index);
@@ -48,8 +57,13 @@ int main() {
     router_post(router, "/hello", handle_hello_post);
     router_get(router, "/hello/{id}", handle_hello_id);
     router_get(router, "/multiple/{id}/{name}", handle_multiple);
+    router_get(router, "/set-cookie", handle_set_cookie);
 
     init_server(80, router);
     start_server();
+
+    // char *request = "GET / HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: curl/7.68.0\r\nAccept: */*\r\nHundesohn\r\n\r\n";
+    // parse(request);
+
     return 0;
 }

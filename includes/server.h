@@ -12,6 +12,7 @@
 #include <http.h>
 #include <routing.h>
 #include <signal.h>
+#include <parser.h>
 
 typedef struct
 {

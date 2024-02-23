@@ -115,6 +115,8 @@ void process_client_request(int sock)
     }
     buffer[read_size] = '\0';
 
+    parse(buffer);
+
     http_request *req = http_parse_request(buffer);
     http_response *res = NULL;
 

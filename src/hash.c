@@ -2,7 +2,7 @@
 #include <hash.h>
 
 
-#define INITIAL_SIZE 1024
+#define INITIAL_SIZE 512
 
 
 hashmap_map *hashmap_new()
@@ -38,6 +38,7 @@ int hashmap_put(hashmap_map *m, char *key, char *value)
     // Linear probing
     while (m->data[index].in_use && strcmp(m->data[index].key, key) != 0) // Overwrite possible
     {
+        printf("Collision: %s\n", key);
         index = (index + 1) % m->table_size;
     }
     hashmap_element *e = m->data + index;

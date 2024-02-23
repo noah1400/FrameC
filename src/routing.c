@@ -134,20 +134,6 @@ void router_free(router_t *router)
     free(router);
 }
 
-param_t *create_param(const char *key, const char *value)
-{
-    param_t *new_param = (param_t *)malloc(sizeof(param_t));
-    if (new_param == NULL)
-    {
-        // Handle memory allocation failure if needed
-        return NULL;
-    }
-    new_param->key = strdup(key);     // Make sure to copy the key
-    new_param->value = strdup(value); // Make sure to copy the value
-    new_param->next = NULL;           // Next pointer is initially NULL
-    return new_param;
-}
-
 int add_param_to_request(http_request *req, char *key, char *value)
 {
     if (req->params == NULL)

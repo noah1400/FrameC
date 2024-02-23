@@ -73,6 +73,7 @@ char *http_response_status_message(int status_code); // maps status code to stat
 http_response *http_response_json(int status_code, char *json_data);
 http_response *http_response_text(int status_code, char *text);
 http_response *http_response_redirect(char *path);
+void http_response_set_cookie(http_response *resp, char *name, char *value, char *path, int max_age);
 /*
     Calls http_response_text with the status code and error message
     It does the same thing as http_response_text but it's more readable
