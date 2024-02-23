@@ -26,6 +26,16 @@ hashmap_map *hashmap_new()
 
 int hashmap_put(hashmap_map *m, char *key, char *value)
 {
+
+    if (value == NULL || strlen(value) == 0)
+    {
+        value = " ";
+    }
+    if (key == NULL || strlen(key) == 0)
+    {
+        key = " ";
+    }
+
     if (m->size >= m->table_size)
     {
         if (hashmap_rehash(m) != MAP_OK)

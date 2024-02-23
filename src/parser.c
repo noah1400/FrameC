@@ -1,64 +1,98 @@
 #include <parser.h>
 
-// parse http request using the mpc parser
-parsed_object *parse(char *input)
+
+void parser_parse_query_string(char *query, http_request *request)
 {
-
-    /* Define all parsers within mpca_lang */
-    mpc_parser_t *HttpMethod = mpc_new("http_method");
-    mpc_parser_t *RequestURI = mpc_new("request_uri");
-    mpc_parser_t *HttpVersion = mpc_new("http_version");
-    mpc_parser_t *RequestLine = mpc_new("request_line");
-    mpc_parser_t *HeaderField = mpc_new("header_field");
-    mpc_parser_t *Headers = mpc_new("headers");
-    mpc_parser_t *MessageBody = mpc_new("message_body");
-    mpc_parser_t *Request = mpc_new("request");
-
-    mpca_lang(MPCA_LANG_DEFAULT,
-              " http_method    : (\"GET\" | \"POST\" | \"PUT\" | \"DELETE\" | \"HEAD\" | \"OPTIONS\" | \"CONNECT\" | \"TRACE\");"
-              " request_uri    : /([^ ]+)/;"
-              " http_version   : /HTTP\\/1\\.[0-1]/;"
-              " request_line   : <http_method> <request_uri> <http_version>;"
-              " header_field   : /[^:\\r\\n]+: [^\\r\\n]+/;"
-              " headers        : (<header_field>)*;"
-              " message_body   : /(.*(\n.*)*)?/;"
-              " request        : /^/ <request_line> <headers> <message_body> /$/;",
-              HttpMethod, RequestURI, HttpVersion, RequestLine, HeaderField, Headers, MessageBody, Request, NULL);
-
-    mpc_result_t r;
-    if (mpc_parse("input", input, Request, &r))
+    // extracts parameters and values from query string
+    // and stores them in a hashmap
+    char *current = query;
+    char *next;
+    while ((next = strchr(current, '&')) && (current[0] != '\0'))
     {
-        mpc_ast_t *a = (mpc_ast_t *)r.output;
+        char *param = strtok(current, "=");
+        char *value = strtok(NULL, "&");
+        hashmap_put(request->params, param, value);
+        current = next + 1;
+    }
+    char *param = strtok(current, "=");
+    char *value = strtok(NULL, "&");
+    hashmap_put(request->params, param, value);
 
-        // traverse the AST 
-        mpc_ast_t *request_line = a->children[1];
-        mpc_ast_t *http_method = request_line->children[0];
-        mpc_ast_t *request_uri = request_line->children[1];
-        mpc_ast_t *http_version = request_line->children[2];
+    return;
+}
 
-        mpc_ast_t *headers = a->children[2];
-        mpc_ast_t *message_body = a->children[3];
+void parser_parse_request(char *req, http_request *request)
+{
+    const char *currentLine = req;
+    char *nextLine;
+    int lineSize;
 
-        // output each part of the request
-        printf("Method: %s\n", http_method->contents);
-        printf("URI: %s\n", request_uri->contents);
-        printf("Version: %s\n", http_version->contents);
-        printf("Headers: \n");
-        for (int i = 0; i < headers->children_num; i++)
-        {
-            printf("\t%s\n", headers->children[i]->contents);
-        }
-        printf("Body: %s\n", message_body->contents);       
+    nextLine = strchr(currentLine, '\r');
+    if (nextLine == NULL)
+    {
+        request->error = 1;
+        return;
+    }
+    lineSize = nextLine - currentLine;
 
-        mpc_ast_delete(a);
-        mpc_cleanup(8, HttpMethod, RequestURI, HttpVersion, RequestLine, HeaderField, Headers, MessageBody, Request);
-        return NULL; // Return a properly filled parsed_object instead
+    sscanf(currentLine, "%s %s %s", request->method, request->uri, request->version);
+
+    // split query string from uri
+    char *queryStart = strchr(request->uri, '?');
+    if (queryStart)
+    {
+        *queryStart = '\0'; // Terminate URI
+        request->_query_string = strdup(queryStart + 1);
+        request->params = hashmap_new();
+        parser_parse_query_string(request->_query_string, request);
     }
     else
     {
-        mpc_err_print(r.error);
-        mpc_err_delete(r.error);
-        mpc_cleanup(8, HttpMethod, RequestURI, HttpVersion, RequestLine, HeaderField, Headers, MessageBody, Request);
-        return NULL;
+        request->_query_string = NULL;
+        request->params = NULL;
     }
+
+    currentLine = nextLine + 2;
+
+    request->headers = hashmap_new();
+
+    while ((nextLine = strstr(currentLine, "\r\n")) && (currentLine[0] != '\r'))
+    {
+        lineSize = nextLine - currentLine;
+        char lineBuffer[lineSize + 1];
+        strncpy(lineBuffer, currentLine, lineSize);
+        lineBuffer[lineSize] = '\0';
+
+        // char *key = strtok(lineBuffer, ":");
+        // char *value = strtok(NULL, "");
+        char key[lineSize + 1], value[lineSize + 1];
+        sscanf(lineBuffer, "%[^:]: %[^\r\n]", key, value);
+
+        if (strlen(key) == 0 || strlen(value) == 0)
+        {
+            request->error = 1;
+            return;
+        }
+        hashmap_put(request->headers, key, value);
+
+        currentLine = nextLine + 2;
+    }
+
+    if (currentLine[0] == '\r')
+    {
+        currentLine += 2;
+    }
+
+    if (strlen(currentLine) > 0)
+    {
+        request->body = strdup(currentLine);
+    }
+    else
+    {
+        request->body = NULL;
+    }
+
+    request->error = 0;
+
+    return;
 }

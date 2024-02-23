@@ -115,9 +115,15 @@ void process_client_request(int sock)
     }
     buffer[read_size] = '\0';
 
-    parse(buffer);
 
-    http_request *req = http_parse_request(buffer);
+    http_request *req = (http_request *)malloc(sizeof(http_request));
+    parser_parse_request(buffer, req);
+    if (req->error)
+    {
+        send_response_and_cleanup(sock, NULL, http_response_error(400, "Bad Request"));
+        free(req);
+        return;
+    }
     http_response *res = NULL;
 
     if (req == NULL)
