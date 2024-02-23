@@ -71,10 +71,15 @@ char *http_request_get_param(http_request *req, char *key);
 http_cookie *http_request_get_cookie(http_request *req, char *key);
 char *http_request_get_get_param(http_request *req, char *key);
 
+
+
 char *http_response_status_message(int status_code); // maps status code to status message
 http_response *http_response_json(int status_code, char *json_data);
 http_response *http_response_text(int status_code, char *text);
 http_response *http_response_redirect(char *path);
+http_response *http_response_view(int status_code, char *view_name, hashmap_map *context);
+
+
 void http_response_set_cookie(http_response *resp, char *name, char *value, char *path, int max_age);
 /*
     Calls http_response_text with the status code and error message
