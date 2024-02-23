@@ -103,27 +103,6 @@ void *handle_client(void *client_socket)
     return NULL;
 }
 
-void print_header(char *key, char *value, void *data)
-{
-    (void)data;
-    printf("%s: %s\n", key, value);
-}
-
-void print_cookie(char *key, char *value, void *data)
-{
-    (void)value;
-    http_cookie *cookie = http_request_get_cookie((http_request *)data, key);
-    printf("   %s: %s\n", key, cookie->value);
-    printf("    Path: %s\n", cookie->path);
-    printf("    Domain: %s\n", cookie->domain);
-    printf("    Expires: %s\n", cookie->expires);
-    printf("    Secure: %s\n", cookie->secure ? "true" : "false");
-    printf("    HttpOnly: %s\n", cookie->httpOnly ? "true" : "false");
-    printf("    SameSite: %s\n", cookie->sameSite);
-
-    http_free_cookie(cookie);
-}
-
 void process_client_request(int sock)
 {
     char buffer[2048];
@@ -146,14 +125,6 @@ void process_client_request(int sock)
         return;
     }
 
-    // output the request
-    printf("\n\n%s %s %s\n", req->method, req->uri, req->version);
-    printf("\nHeaders:\n");
-    hashmap_iterate(req->headers, print_header, NULL);
-    printf("\nCookies:\n");
-    hashmap_iterate(req->cookies, print_cookie, req);
-
-
     http_response *res = NULL;
 
     if (req == NULL)
@@ -172,7 +143,7 @@ void process_client_request(int sock)
     hashmap_iterate(res->headers, print_header, NULL);
     printf("\nCookies:\n");
     hashmap_iterate(res->cookies, print_cookie, req);
-    
+
 
     send_response_and_cleanup(sock, req, res);
 }
