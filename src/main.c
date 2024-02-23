@@ -61,9 +61,5 @@ int main() {
 
     init_server(80, router);
     start_server();
-
-    // char *request = "GET / HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: curl/7.68.0\r\nAccept: */*\r\nHundesohn\r\n\r\n";
-    // parse(request);
-
     return 0;
 }

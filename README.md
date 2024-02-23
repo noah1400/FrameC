@@ -82,3 +82,57 @@ int main() {
     return 0;
 }
 ```
+
+## Route Parameters
+
+This section explains how to pass parameters to a route in your application. Parameters can be supplied through two methods:
+
+### 1. URI (Path Parameters)
+
+Parameters included directly in the URI are mandatory. If such a parameter is missing, the server will return a `404 Not Found` response.
+
+#### Example
+
+```txt
+/hello/{id}
+```
+
+In this example, {id} is a path parameter that must be provided in the URI.
+
+### 2. Query String Parameters
+
+Alternatively, parameters can be passed via the query string.
+
+#### Example
+
+```txt
+/hello?id=4
+```
+
+In this case, the parameter id is supplied as a query string parameter.
+
+### Accessing the Parameters
+
+Regardless of how parameters are passed (URI or query string), they are stored in the request->params hashmap. You can access these parameters using the following function:
+
+```c
+char *http_request_get_param(http_request *req, char *key);
+```
+
+### Example Usage
+
+The following example demonstrates how to retrieve a parameter named id from a request and use it to generate a personalized response:
+
+```c
+// Example: Handling a GET request to /hello
+http_response *handle_hello_post(http_request *req) {
+    char *id = http_request_get_param(req, "id"); // Retrieve the 'id' parameter
+    char *response = malloc(strlen(id) + 8); // Allocate memory for the response
+    sprintf(response, "Hello %s!", id); // Generate the response string
+    http_response *res = http_response_text(200, response); // Create the HTTP response
+    free(response); // Free the allocated memory for the response
+    return res; // Return the response
+}
+```
+
+**Note:** The approach to handling parameters may evolve, so it's important to stay updated with the latest documentation and code examples.
