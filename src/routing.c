@@ -44,7 +44,7 @@ void router_add_route(router_t *router, route_t *route)
     router->count++;
 }
 
-void router_get(router_t *router, char *path, http_response *(*handler)(http_request *req))
+void router_get(router_t *router, const char *path, http_response *(*handler)(http_request *req))
 {
     route_t *route = route_create();
     route->path = malloc(strlen(path) + 1);
@@ -54,7 +54,7 @@ void router_get(router_t *router, char *path, http_response *(*handler)(http_req
     router_add_route(router, route);
 }
 
-void router_post(router_t *router, char *path, http_response *(*handler)(http_request *req))
+void router_post(router_t *router, const char *path, http_response *(*handler)(http_request *req))
 {
     route_t *route = route_create();
     route->path = malloc(strlen(path) + 1);
@@ -64,7 +64,7 @@ void router_post(router_t *router, char *path, http_response *(*handler)(http_re
     router_add_route(router, route);
 }
 
-void router_put(router_t *router, char *path, http_response *(*handler)(http_request *req))
+void router_put(router_t *router, const char *path, http_response *(*handler)(http_request *req))
 {
     route_t *route = route_create();
     route->path = malloc(strlen(path) + 1);
@@ -74,7 +74,7 @@ void router_put(router_t *router, char *path, http_response *(*handler)(http_req
     router_add_route(router, route);
 }
 
-void router_delete(router_t *router, char *path, http_response *(*handler)(http_request *req))
+void router_delete(router_t *router, const char *path, http_response *(*handler)(http_request *req))
 {
     route_t *route = route_create();
     route->path = malloc(strlen(path) + 1);
@@ -84,7 +84,7 @@ void router_delete(router_t *router, char *path, http_response *(*handler)(http_
     router_add_route(router, route);
 }
 
-int str_to_method(char *method)
+int str_to_method(const char *method)
 {
     if (strcmp(method, "GET") == 0)
     {
@@ -107,7 +107,7 @@ int str_to_method(char *method)
 
 http_response *router_handle_request(router_t *router, http_request *req)
 {
-    route_t *route = match_route(req, router);
+    const route_t *route = match_route(req, router);
     if (route != NULL)
     {
         return route->handler(req);
@@ -134,12 +134,12 @@ void router_free(router_t *router)
     free(router);
 }
 
-int add_param_to_request(http_request *req, char *key, char *value)
+int add_param_to_request(http_request *req, char *key, const char *value)
 {
     return hashmap_put(req->params, key, value);
 }
 
-char **split_string(char *str, char *delimiter, int *count)
+char **split_string(const char *str, const char *delimiter, int *count)
 {
     char **array = NULL;
     int capacity = 10;
@@ -162,7 +162,7 @@ char **split_string(char *str, char *delimiter, int *count)
     }
 
     char *saveptr; // For strtok_r's context
-    char *token = strtok_r(str_copy, delimiter, &saveptr);
+    const char *token = strtok_r(str_copy, delimiter, &saveptr);
     while (token)
     {
         if (*count >= capacity)
@@ -209,7 +209,8 @@ route_t *match_route(http_request *req, router_t *router)
     routing_table_t *current = router->table;
     while (current != NULL)
     {
-        int route_segments_count, uri_segments_count;
+        int route_segments_count;
+        int uri_segments_count;
         char **route_segments = split_string(current->route->path, "/", &route_segments_count);
         // remove '/' at the end of the uri if it exists
         if (req->uri[strlen(req->uri) - 1] == '/')
