@@ -125,8 +125,6 @@ http_response *http_create_response(int status_code, const char *status_message,
         return NULL; // Failed to create cookies map
     }
 
-    // Example usage: Add a default Content-Type header
-    // This assumes http_response_add_header is properly implemented
     http_response_add_header(response, "Content-Type", "text/plain");
     if (body)
     {
@@ -251,28 +249,6 @@ char *http_request_get_param(http_request *req, char *key)
     return hashmap_get(req->params, key);
 }
 
-char *trim_whitespace(char *str)
-{
-    char *end;
-
-    // Trim leading space
-    while (isspace((unsigned char)*str))
-        str++;
-
-    if (*str == 0) // All spaces?
-        return str;
-
-    // Trim trailing space
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end))
-        end--;
-
-    // Write new null terminator character
-    *(end + 1) = 0;
-
-    return str;
-}
-
 http_cookie *http_parse_cookie_string(char *cookieString)
 {
     http_cookie *cookie = malloc(sizeof(http_cookie));
@@ -292,8 +268,8 @@ http_cookie *http_parse_cookie_string(char *cookieString)
 
         if (key != NULL && value != NULL)
         {
-            key = trim_whitespace(key);
-            value = trim_whitespace(value);
+            trim_whitespace(key);
+            trim_whitespace(value);
 
             if (strcmp(key, "Expires") == 0)
             {
@@ -320,7 +296,7 @@ http_cookie *http_parse_cookie_string(char *cookieString)
         else if (key != NULL)
         {
             // Handle boolean attributes
-            key = trim_whitespace(key);
+            trim_whitespace(key);
             if (strcmp(key, "Secure") == 0)
             {
                 cookie->secure = true;

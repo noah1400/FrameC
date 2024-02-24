@@ -8,6 +8,7 @@
 #include <hash.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <utils.h>
 
 typedef struct {
     char method[10];

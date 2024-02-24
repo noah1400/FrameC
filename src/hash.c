@@ -62,6 +62,7 @@ char *hashmap_get(hashmap_map *m, const char *key)
 {
 
     if (!m) {
+        printf("Map is NULL\n");
         return NULL;
     }
 
@@ -135,6 +136,7 @@ unsigned int hashmap_hash_string(const char *str) {
 }
 
 int hashmap_rehash(hashmap_map *m) {
+    printf("Rehashing\n");
     int old_size = m->table_size;
     hashmap_element *old_data = m->data;
 
