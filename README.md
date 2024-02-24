@@ -11,6 +11,8 @@ A lightweight C-based web framework featuring an integrated web server and simpl
 
 **Usage Advisory**: Given the above limitations, I advise users to ensure that input data is well-formed and compliant with HTTP/1.1 specifications to avoid potential issues. I appreciate feedback and bug reports from you to help improve the software.
 
+**Compression Support**: The implemented webserver does not support any encoding.
+
 ## Build
 ```bash
 make
