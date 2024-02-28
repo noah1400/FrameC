@@ -1,0 +1,26 @@
+#ifndef _FRAMEC_H
+#define _FRAMEC_H
+
+#include <http.h>
+#include <routing.h>
+#include <pthread.h>
+#include <server.h>
+#include <http.h>
+
+// Framework control structure
+typedef struct _framec_t{
+    http_request *request; // current request
+    http_response *response; // response that will be sent
+} framec_t;
+
+
+void framec_start(); // Start the framework
+void framec_terminate(); // Terminate the framework
+void framec_handle(int sock, char *r); // takes raw request and handles it
+
+
+// facade
+void framec_response_set_header(char *key, char *value);
+void framec_response_set_status(int status);
+
+#endif // _FRAMEC_H

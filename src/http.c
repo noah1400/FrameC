@@ -189,7 +189,7 @@ char *http_response_to_string(http_response *response)
     hashmap_iterate(response->cookies, &calculateLength, &count);
     totalLength += count;
 
-    char *responseString = (char *)malloc(totalLength + 1); // +1 for null terminator
+    char *responseString = (char *)malloc(totalLength + 2);
     if (!responseString)
         return NULL;
 

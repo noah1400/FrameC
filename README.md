@@ -3,7 +3,7 @@
 A lightweight C-based web framework featuring an integrated web server and simplistic routing mechanism.
 
 ## Current Limitations and Known Issues
-**HTTP Version Support**: This software currently supports only HTTP/1.1. Compatibility with other versions of the HTTP protocol, such as HTTP/2 or HTTP/1.0, is not guaranteed.
+**HTTP Version Support**: This software currently supports only HTTP/1.1. Compatibility with other versions of the HTTP protocol, such as HTTP/2 or HTTP/1.0, is not guaranteed. Any Encryption using SSL certificates are also not supported. If needed see [Proxy config](#proxy-configurations)
 
 **Request Validation**: Please be aware that HTTP/TCP requests that do not adhere to the expected format may lead to unpredictable behavior. The error handling mechanisms in place may not sufficiently identify or mitigate issues arising from improperly formatted requests.
 
@@ -11,7 +11,11 @@ A lightweight C-based web framework featuring an integrated web server and simpl
 
 **Usage Advisory**: Given the above limitations, I advise users to ensure that input data is well-formed and compliant with HTTP/1.1 specifications to avoid potential issues. I appreciate feedback and bug reports from you to help improve the software.
 
-**Compression Support**: The implemented webserver does not support any encoding.
+**Compression Support**: The implemented webserver does not support any encoding. If needed see [Proxy config](#proxy-configurations)
+
+## Proxy configurations
+
+Since the implementation of the webserver does not support any encryption or encoding, you can set up a proxy to handle it.
 
 ## Build
 ```bash

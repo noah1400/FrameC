@@ -9,6 +9,10 @@ void cleanup_server(void)
     printf("Server socket closed.\n");
     router_free(global_server->router);
     printf("Router resources freed.\n");
+    pthread_key_delete(global_server->frame_key);
+    printf("Thread key deleted.\n");
+    pthread_mutex_destroy(&global_server->lock);
+    printf("Mutex destroyed.\n");
     free(global_server);
     printf("Server resources freed.\n");
     exit(1);
@@ -28,6 +32,8 @@ void init_server(int port, router_t *router)
     global_server->port = port;
     global_server->shutdown_requested = 0;
     global_server->router = router;
+    pthread_key_create(&global_server->frame_key, NULL);
+    pthread_mutex_init(&global_server->lock, NULL);
 }
 
 int start_server()
@@ -85,6 +91,7 @@ int start_server()
 
     if (global_server->shutdown_requested)
     {
+        free(new_sock); // Ensure memory allocated for new_sock is freed on shutdown
         cleanup_server(); // Cleanup server resources
     }
     else if (new_sock == NULL)
@@ -116,49 +123,7 @@ void process_client_request(int sock)
     }
     buffer[read_size] = '\0';
 
-
-    http_request *req = http_create_request();
-    if (req == NULL)
-    {
-        send_response_and_cleanup(sock, NULL, http_response_error(500, "Internal Server Error"));
-        return;
-    }
-    parser_parse_request(buffer, req);
-    if (req->error)
-    {
-        send_response_and_cleanup(sock, NULL, http_response_error(400, "Bad Request"));
-        free(req);
-        return;
-    }
-
-    http_response *res = NULL;
-
-    if (req == NULL)
-    {
-        res = http_response_error(400, "Bad Request");
-    }
-    else
-    {
-        res = router_handle_request(global_server->router, req);
-    }
-
-
-    send_response_and_cleanup(sock, req, res);
-}
-
-void send_response_and_cleanup(int sock, http_request *req, http_response *res)
-{
-    char *response = http_response_to_string(res);
-    char *req_str = req ? http_request_to_string(req) : strdup("Invalid Request");
-    printf("%s %d s:%ld\r\n", req_str, res->status_code, strlen(response));
-
-    send(sock, response, strlen(response), 0);
-
-    // Cleanup
-    free(req_str);
-    if (req)
-        http_free_request(req);
-    http_free_response(res);
-    free(response);
-    close(sock);
+    framec_start();
+    framec_handle(sock, buffer);
+    framec_terminate();
 }

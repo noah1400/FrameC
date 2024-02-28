@@ -13,6 +13,7 @@
 #include <routing.h>
 #include <signal.h>
 #include <parser.h>
+#include <framec.h>
 
 typedef struct
 {
@@ -20,6 +21,8 @@ typedef struct
     int server_fd;
     int port;
     router_t *router;
+    pthread_key_t frame_key;
+    pthread_mutex_t lock;
 } server_t;
 
 extern server_t *global_server;
