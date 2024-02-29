@@ -49,6 +49,10 @@ int hashmap_put(hashmap_map *m, char *key, const char *value)
         index = (index + 1) % m->table_size;
     }
     hashmap_element *e = m->data + index;
+
+    // since overwrite is possible we need to free existing values
+    if (e->key) free(e->key);
+    if (e->value) free(e->value);
     e->key = (char *)malloc(strlen(key) + 1);
     e->value = (char *)malloc(strlen(value) + 1);
     strcpy(e->key, key);

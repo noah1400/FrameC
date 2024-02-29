@@ -23,4 +23,8 @@ void framec_handle(int sock, char *r); // takes raw request and handles it
 void framec_response_set_header(char *key, char *value);
 void framec_response_set_status(int status);
 
+http_request *framec_get_request();
+
+char *framec_request(char *key, char *def);
+
 #endif // _FRAMEC_H

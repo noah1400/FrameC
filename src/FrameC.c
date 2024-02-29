@@ -7,6 +7,11 @@ static void framec_set_response(framec_t *framec, http_response *response);
 static void framec_set_request(framec_t *framec, http_request *request);
 
 
+static framec_t *get_framec()
+{
+    return (framec_t *)pthread_getspecific(global_server->frame_key);
+}
+
 static framec_t *framec_create()
 {
     framec_t *framec = (framec_t *)malloc(sizeof(framec_t));
@@ -21,7 +26,7 @@ static framec_t *framec_create()
 
 static void framec_destroy()
 {
-    framec_t *framec = (framec_t *)pthread_getspecific(global_server->frame_key);
+    framec_t *framec = get_framec();
     if (framec->request)
     {
         http_free_request(framec->request);
@@ -73,7 +78,7 @@ void framec_terminate()
 
 void framec_handle(int sock, char *buffer)
 {
-    framec_t *framec = (framec_t *)pthread_getspecific(global_server->frame_key);
+    framec_t *framec = get_framec();
     framec_set_request(framec, http_create_request());
     if (framec->request == NULL)
     {
@@ -96,12 +101,30 @@ void framec_handle(int sock, char *buffer)
 
 void framec_response_set_header(char *key, char *value)
 {
-    framec_t *framec = (framec_t *)pthread_getspecific(global_server->frame_key);
+    framec_t *framec = get_framec();
     http_response_add_header(framec->response, key, value);
 }
 
 void framec_response_set_status(int status)
 {
-    framec_t *framec = (framec_t *)pthread_getspecific(global_server->frame_key);
+    framec_t *framec = get_framec();
     framec->response->status_code = status;
+}
+
+http_request *framec_get_request()
+{
+    return get_framec()->request;
+}
+
+char *framec_request(char *key, char *def)
+{
+    framec_t *framec = get_framec();
+    char *value = http_request_get_param(framec->request, key);
+    if (!value)
+    {
+        value = http_request_get_get_param(framec->request, key);
+    }
+
+    if (value) return value;
+    return def;
 }

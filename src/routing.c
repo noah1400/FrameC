@@ -209,6 +209,14 @@ route_t *match_route(http_request *req, router_t *router)
     routing_table_t *current = router->table;
     while (current != NULL)
     {
+
+        // check method
+        int requestMethod = str_to_method(req->method);
+        if (requestMethod != current->route->method)
+        {
+            goto nextRoute;
+        }
+
         int route_segments_count;
         int uri_segments_count;
         char **route_segments = split_string(current->route->path, "/", &route_segments_count);
@@ -260,6 +268,8 @@ route_t *match_route(http_request *req, router_t *router)
         for (int j = 0; j < uri_segments_count; j++)
             free(uri_segments[j]);
         free(uri_segments);
+
+        nextRoute:
 
         current = current->next;
     }

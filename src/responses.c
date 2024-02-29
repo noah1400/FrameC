@@ -86,6 +86,7 @@ char *http_render_template(char *view_name, hashmap_map *context)
         return NULL;
     }
     char *result = template_compute(template, context);
+    free(template);
     if (result == NULL)
     {
         return NULL;
