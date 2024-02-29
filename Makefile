@@ -12,20 +12,23 @@ TARGET := $(BIN_DIR)/server
 
 # Default debug flags are empty
 DEBUG_FLAGS := 
+RELEASE_FLAGS :=
 
 # This target is for release builds
 all: DEBUG_FLAGS := 
+all: RELEASE_FLAGS := -Ofast
 all: $(TARGET) copy_views
 
 # This target is for debug builds
 debug: DEBUG_FLAGS := -g -O0
+debug: RELEASE_FLAGS :=
 debug: $(TARGET) copy_views
 
 $(TARGET): $(OBJ_FILES)
 	$(CC) $(DEBUG_FLAGS) $^ -o $@ $(LDFLAGS)
 
 $(OBJS_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJS_DIR)
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(RELEASE_FLAGS) -c $< -o $@
 
 $(BIN_DIR) $(OBJS_DIR):
 	mkdir -p $@
