@@ -14,7 +14,7 @@
 typedef struct {
     char *path;
     int method;
-    http_response *(*handler)(http_request *req);
+    http_response *(*handler)();
 } route_t;
 
 typedef struct routing_table_t{

@@ -110,7 +110,7 @@ http_response *router_handle_request(router_t *router, http_request *req)
     const route_t *route = match_route(req, router);
     if (route != NULL)
     {
-        return route->handler(req);
+        return route->handler();
     }
     return http_response_json(404, "{\"error\": \"Not Found\"}");
 }
@@ -207,14 +207,14 @@ char **split_string(const char *str, const char *delimiter, int *count)
 route_t *match_route(http_request *req, router_t *router)
 {
     routing_table_t *current = router->table;
+    int requestMethod = str_to_method(req->method);
     while (current != NULL)
     {
-
         // check method
-        int requestMethod = str_to_method(req->method);
         if (requestMethod != current->route->method)
         {
-            goto nextRoute;
+            current = current->next;
+            continue;
         }
 
         int route_segments_count;
@@ -268,8 +268,6 @@ route_t *match_route(http_request *req, router_t *router)
         for (int j = 0; j < uri_segments_count; j++)
             free(uri_segments[j]);
         free(uri_segments);
-
-        nextRoute:
 
         current = current->next;
     }
