@@ -100,6 +100,7 @@ int start_server()
         free(new_sock); // Ensure memory allocated for new_sock is freed on error
     }
     // todo: wait for all threads to finish
+    free(new_sock);
     return 0;
 }
 
