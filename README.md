@@ -34,30 +34,32 @@ Stopping server with `CTRL+C` will automatically free all remaining resources.
 
 ```c
 #include <server.h>
-#include <http.h>
 #include <routing.h>
+#include <framec.h>
 
-// GET /
-http_response *handle_index(http_request *req) {
-    (void)req; // Unused parameter (req) warning
-    return http_response_text(200, "Index <GET>");
+http_response *handle_index()
+{
+    hashmap_map *context = hashmap_new();
+    hashmap_put(context, "title", "Hello, World!");
+    hashmap_put(context, "name", "Noah Scholz");
+    http_response *r = http_response_view(200, "index", context);
+    hashmap_free(context);
+    return r;
 }
 
 // GET /hello
-http_response *handle_hello(http_request *req) {
-    (void)req; // Unused parameter (req) warning
+http_response *handle_hello() {
     return http_response_text(200, "Hello, World! <GET>");
 }
 
 // POST /hello
-http_response *handle_hello_post(http_request *req) {
-    (void)req; // Unused parameter (req) warning
+http_response *handle_hello_post() {
     return http_response_text(200, "Hello, World! <POST>");
 }
 
 // GET /hello/{id}
-http_response *handle_hello_id(http_request *req) {
-    char *id = http_request_get_param(req, "id");
+http_response *handle_hello_id() {
+    char *id = framec_request("id","nullID");
     char *response = malloc(strlen(id) + 8);
     sprintf(response, "Hello %s!", id);
     http_response *res = http_response_text(200, response);
@@ -66,9 +68,9 @@ http_response *handle_hello_id(http_request *req) {
 }
 
 // GET /multiple/{id}/{name}
-http_response *handle_multiple(http_request *req) {
-    char *id = http_request_get_param(req, "id");
-    char *name = http_request_get_param(req, "name");
+http_response *handle_multiple() {
+    char *id = framec_request("id", "nullID");
+    char *name = framec_request("name", "nullName");
     char *response = malloc(strlen(id) + strlen(name) + 3);
     sprintf(response, "%s %s", id, name);
     http_response *res = http_response_text(200, response);
@@ -76,13 +78,14 @@ http_response *handle_multiple(http_request *req) {
     return res;
 }
 
-int main() {
+int main()
+{
     router_t *router = router_create();
-    router_get(router, "/", handle_index);
-    router_get(router, "/hello", handle_hello);
-    router_post(router, "/hello", handle_hello_post);
-    router_get(router, "/hello/{id}", handle_hello_id);
-    router_get(router, "/multiple/{id}/{name}", handle_multiple);
+    router_get(router, "/", &handle_index);
+    router_get(router, "/hello", &handle_hello);
+    router_post(router, "/hello", &handle_hello_post);
+    router_get(router, "/hello/{id}", &handle_hello_id);
+    router_get(router, "/multiple/{id}/{name}", &handle_multiple);
 
     init_server(80, router);
     start_server();
@@ -108,12 +111,6 @@ Path parameters are included directly in the URI and are mandatory. If a require
 /hello/{id}
 ```
 
-In this example, {id} is a path parameter that must be provided in the URI.
-
-```c
-char *name = http_request_get_param(req, "name");
-```
-
 #### 2. Query String Parameters
 
 Alternatively, parameters can be passed via the query string.
@@ -124,11 +121,9 @@ Alternatively, parameters can be passed via the query string.
 /hello?id=4
 ```
 
-To access query string parameters, use:
+##### Accessing Parameters
 
-```c
-char *getParam = http_request_get_get_param(req, "name");
-```
+You can access a parameter by calling the `framec_request(char *key, char *default)` function, which looks up uri and query parameters using the given key. if the key is not found the default value is beeing returned.
 
 ### Cookies
 
