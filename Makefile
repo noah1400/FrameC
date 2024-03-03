@@ -35,6 +35,7 @@ $(BIN_DIR) $(OBJS_DIR):
 
 copy_views: | $(BIN_DIR)
 	cp -r $(VIEWS_DIR) $(BIN_DIR)
+	mkdir -p $(BIN_DIR)/sessions
 
 clean:
 	rm -rf $(BIN_DIR)

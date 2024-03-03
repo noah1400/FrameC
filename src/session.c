@@ -4,8 +4,9 @@ static char *getFileName(session_t *session)
 {
     if (session->filename) return session->filename;
     char *id = session->id;
-    char *filename = (char *)malloc(strlen(id) + 5);
-    strcpy(filename, id);
+    char *filename = (char *)malloc(strlen(id) + 15);
+    strcpy(filename, "sessions/");
+    strcat(filename, id);
     strcat(filename, ".txt");
     session->filename = filename;
     return filename;
