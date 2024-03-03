@@ -35,7 +35,6 @@ int hashmap_put(hashmap_map *m, char *key, const char *value)
     {
         key = " ";
     }
-
     if (m->size >= m->table_size && hashmap_rehash(m) != MAP_OK)
     {
         return MAP_FULL;
@@ -64,7 +63,6 @@ int hashmap_put(hashmap_map *m, char *key, const char *value)
 
 char *hashmap_get(hashmap_map *m, const char *key)
 {
-
     if (!m) {
         printf("Map is NULL\n");
         return NULL;
@@ -79,6 +77,8 @@ char *hashmap_get(hashmap_map *m, const char *key)
         }
         index = (index + 1) % m->table_size;
     }
+
+    printf("Key not found\n");
     return NULL;
 }
 

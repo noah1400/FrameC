@@ -63,6 +63,7 @@ void parse_cookies(char *cookies, http_request *request) {
         char *cookieName = strtok_r(cookie, "=", &rest);
         const char *cookieValue = strtok_r(NULL, ";", &rest);
         if (cookieName && cookieValue) {
+            trim_whitespace(cookieName);
             hashmap_put(request->cookies, cookieName, cookieValue);
         }
         cookie = strtok_r(NULL, ";", &rest);

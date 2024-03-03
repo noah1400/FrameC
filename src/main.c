@@ -43,6 +43,21 @@ http_response *handle_multiple() {
     return res;
 }
 
+http_response *handle_session() {
+    // Retrieve the current value from the session or "0" if not set
+    char *valueStr = framec_session_get("value", "0");
+    int value = atoi(valueStr);
+    
+    // Increment the value
+    value++;
+    char newValueStr[12]; // Enough to hold int values, including negative numbers
+    sprintf(newValueStr, "%d", value);
+    
+    // Update the session with the new value
+    framec_session_set("value", newValueStr);
+    return http_response_text(200, newValueStr);
+}
+
 int main()
 {
     router_t *router = router_create();
@@ -51,6 +66,7 @@ int main()
     router_post(router, "/hello", &handle_hello_post);
     router_get(router, "/hello/{id}", &handle_hello_id);
     router_get(router, "/multiple/{id}/{name}", &handle_multiple);
+    router_get(router, "/session", &handle_session);
 
     init_server(80, router);
     start_server();

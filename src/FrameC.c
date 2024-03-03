@@ -76,6 +76,30 @@ void framec_terminate()
     framec_destroy();
 }
 
+static char *framec_handle_session(framec_t *framec)
+{
+    session_t *session = session_create();
+    framec->session = session;
+
+    char *id = hashmap_get(framec->request->cookies, "SESSIONID");
+    if (id)
+    {
+        session->id = strdup(id);
+    } else {
+        session->id = NULL;
+    }
+
+    return session->id;
+}
+
+static void framec_set_session_cookie(framec_t *framec)
+{
+    if (framec->session->id)
+    {
+        http_response_set_cookie(framec->response, "SESSIONID", framec->session->id, "/", 3600);
+    }
+}
+
 void framec_handle(int sock, char *buffer)
 {
     framec_t *framec = get_framec();
@@ -93,9 +117,17 @@ void framec_handle(int sock, char *buffer)
         framec_send_response(sock, framec);
         return;
     }
+    framec_handle_session(framec);
+    session_start(framec->session);
+
+
     pthread_mutex_lock(&global_server->lock);
     framec_set_response(framec, router_handle_request(global_server->router, framec->request));
     pthread_mutex_unlock(&global_server->lock);
+
+    framec_set_session_cookie(framec);
+    session_end(framec->session);
+
     framec_send_response(sock, framec);
 }
 
@@ -127,4 +159,25 @@ char *framec_request(char *key, char *def)
 
     if (value) return value;
     return def;
+}
+
+void framec_session_set(char *key, char *value)
+{
+    framec_t *framec = get_framec();
+    session_t *session = framec->session;
+
+    session_set(session, key, value);
+}
+
+char *framec_session_get(char *key, char *def)
+{
+    framec_t *framec = get_framec();
+    session_t *session = framec->session;
+
+    char *value = session_get(session, key);
+    if (!value)
+    {
+        return def;
+    }
+    return value;
 }

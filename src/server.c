@@ -88,19 +88,10 @@ int start_server()
         // Detach the thread to allow for independent operation
         pthread_detach(thread_id);
     }
+    if (new_sock == NULL) perror("accept failed");
 
-    if (global_server->shutdown_requested)
-    {
-        free(new_sock); // Ensure memory allocated for new_sock is freed on shutdown
-        cleanup_server(); // Cleanup server resources
-    }
-    else if (new_sock == NULL)
-    {
-        perror("accept failed");
-        free(new_sock); // Ensure memory allocated for new_sock is freed on error
-    }
-    // todo: wait for all threads to finish
-    free(new_sock);
+    if (new_sock) free(new_sock); // Ensure memory allocated for new_sock is freed
+    cleanup_server(); // Cleanup server resources
     return 0;
 }
 

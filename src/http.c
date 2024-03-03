@@ -189,7 +189,7 @@ char *http_response_to_string(http_response *response)
     hashmap_iterate(response->cookies, &calculateLength, &count);
     totalLength += count;
 
-    char *responseString = (char *)malloc(totalLength + 2);
+    char *responseString = (char *)malloc(totalLength + 100);
     if (!responseString)
         return NULL;
 
@@ -315,7 +315,10 @@ http_cookie *http_request_get_cookie(http_request *req, char *key)
 {
     const char *cookieString = hashmap_get(req->cookies, key);
     if (!cookieString)
+    {
+        printf("Cookie %s not found\n", key);
         return NULL; // Cookie not found
+    }
 
     // Make a copy of the cookie string since strtok modifies the string
     char *cookieStringCopy = strdup(cookieString);

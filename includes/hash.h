@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <utils.h>
 
 #define MAP_MISSING -3  // no such element
 #define MAP_FULL -2     // hash map is full
