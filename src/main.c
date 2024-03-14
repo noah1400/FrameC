@@ -5,7 +5,7 @@
 http_response *handle_index()
 {
     hashmap_map *context = hashmap_new();
-    hashmap_put(context, "title", "Hello, World!");
+    hashmap_put(context, "title", framec_env("APPNAME", "FrameC"));
     hashmap_put(context, "name", "Noah Scholz");
     http_response *r = http_response_view(200, "index", context);
     hashmap_free(context);

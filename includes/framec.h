@@ -7,12 +7,14 @@
 #include <server.h>
 #include <http.h>
 #include <session.h>
+#include <config.h>
 
 // Framework control structure
 typedef struct _framec_t{
     http_request *request; // current request
     http_response *response; // response that will be sent
     session_t *session; // current session
+    config_t *config; // current configuration
 } framec_t;
 
 
@@ -31,5 +33,8 @@ char *framec_request(char *key, char *def);
 
 void framec_session_set(char *key, char *value);
 char *framec_session_get(char *key, char *def);
+
+
+const char *framec_env(char *key, char *def);
 
 #endif // _FRAMEC_H

@@ -21,6 +21,8 @@ static framec_t *framec_create()
         framec_terminate();
         exit(1);
     }
+    config_t *config = config_new();
+    framec->config = config;
     return framec;
 }
 
@@ -35,6 +37,7 @@ static void framec_destroy()
     {
         http_free_response(framec->response);
     }
+    config_free(framec->config);
     free(framec);
 }
 
@@ -180,4 +183,10 @@ char *framec_session_get(char *key, char *def)
         return def;
     }
     return value;
+}
+
+const char *framec_env(char *key, char *def)
+{
+    framec_t *framec = get_framec();
+    return config_get(framec->config, key, def);
 }
