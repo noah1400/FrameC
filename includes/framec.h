@@ -8,6 +8,7 @@
 #include <http.h>
 #include <session.h>
 #include <config.h>
+#include <database.h>
 
 // Framework control structure
 typedef struct _framec_t{

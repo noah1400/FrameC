@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <sqlite3.h>
+#include <framec.h>
 
 void database_init();
 

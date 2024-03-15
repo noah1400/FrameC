@@ -72,6 +72,7 @@ void framec_start()
 {
     framec_t *framec = framec_create();
     pthread_setspecific(global_server->frame_key, framec);
+    database_init();
 }
 
 void framec_terminate()

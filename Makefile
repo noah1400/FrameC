@@ -1,7 +1,7 @@
 CC := gcc
 # Removed -g from CFLAGS
 CFLAGS := -Iincludes -Wall -Wextra -Werror -Wpedantic
-LDFLAGS := -lpthread
+LDFLAGS := -lpthread -lsqlite3
 SRC_DIR := src
 BIN_DIR := bin
 OBJS_DIR := $(BIN_DIR)/objs
